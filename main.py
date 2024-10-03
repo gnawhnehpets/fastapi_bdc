@@ -123,3 +123,39 @@ async def initiate_aws_transfer_gcs(bucket: str = Body("nih-nhlbi-rti-test-gcp-b
                 "content": response.text,
                 "status_code": response.status_code
             }
+        
+@app.post("/manifest_generation_gcs")
+async def manifest_generation_gcs(bucket: str = Body("nih-nhlbi-rti-test-gcp-bucket", embed=True), is_topmed: bool = Body(False, embed=True)):
+    print(f"bucket: {bucket}, is_topmed: {is_topmed}")
+    
+    # Get AWS credentials based on the status (is_topmed or not)
+    AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY = get_proper_credentials(is_topmed)
+    
+    task_data = {
+        "name": f"generate_manifest_gcs - fastapi - {bucket}",
+        "app": APP_MANIFEST_GENERATION_GCS,
+        "project": PROJECT_ID,
+        "inputs": {
+            "AWS_DEFAULT_REGION": AWS_DEFAULT_REGION,
+            "AWS_ACCESS_KEY_ID": AWS_ACCESS_KEY_ID,
+            "AWS_SECRET_ACCESS_KEY": AWS_SECRET_ACCESS_KEY,
+            "BUCKET": bucket,
+            "NHLBI_RTI_ACCESS_JSON": NHLBI_RTI_ACCESS_JSON
+        }
+    }
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"{BASE_URL}/tasks",
+            headers=HEADERS,
+            json=task_data
+        )
+        
+        try:
+            return response.json()
+        except Exception as e:
+            return {
+                "error": str(e),
+                "content": response.text,
+                "status_code": response.status_code
+            }
