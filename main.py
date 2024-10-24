@@ -179,6 +179,12 @@ async def manifest_generation_gcs(bucket: str = Body("nih-nhlbi-rti-test-gcp-buc
                 "status_code": response.status_code
             }
 
+
+# @app.get("/check_for_manifests")
+# async def check_for_manifests(job_id: str):
+
+
+
 @app.get("/check_job_status")
 async def check_job_status(job_id: str):
 
